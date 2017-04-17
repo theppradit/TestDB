@@ -48,8 +48,15 @@
         <br />
     </div>
         <asp:FileUpload ID="FileUpload1" runat="server" />
-&nbsp;<asp:Button ID="Button1" runat="server" Height="22px" Text="Upload" />
+&nbsp;<asp:Button ID="Button1" runat="server" Height="22px" Text="Upload" OnClick="Button1_Click" />
     &nbsp;<asp:Button ID="Button2" runat="server" Height="22px" OnClick="Button2_Click" Text="ShowDB" />
+        <br />
+        <br />
+        <asp:Label ID="Label1" runat="server" Text="Has Header ?"></asp:Label>
+        <asp:RadioButtonList ID="rbHDR" runat="server" BorderStyle="None" BorderWidth="0px">
+            <asp:ListItem Text = "Yes" Value = "Yes" Selected = "True" ></asp:ListItem>
+            <asp:ListItem Text = "No" Value = "No"></asp:ListItem>
+        </asp:RadioButtonList>
     </form>
 </body>
 </html>

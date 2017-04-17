@@ -14,11 +14,6 @@ using System.IO;
 public partial class _Default : System.Web.UI.Page 
 {
 
-    OleDbConnection Econ;
-    SqlConnection con;
-    string constrEx, Query, sqlconn;
-    string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
-
     protected void Page_Load(object sender, EventArgs e)
     {
         //if (!this.IsPostBack)
@@ -26,9 +21,14 @@ public partial class _Default : System.Web.UI.Page
         //    this.BindGrid();
         //}
     }
+    protected void Button2_Click(object sender, EventArgs e)
+    {
+        BindGrid();
+    }
 
     private void BindGrid()
     {
+        string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
         using (SqlConnection con = new SqlConnection(constr))
         {
             using (SqlCommand cmd = new SqlCommand("SELECT Name, City, Address, Designation FROM dbo.Employee"))
@@ -50,92 +50,66 @@ public partial class _Default : System.Web.UI.Page
 
     protected void OnPageIndexChanging(object sender, GridViewPageEventArgs e)
     {
+        string FolderPath = ConfigurationManager.AppSettings["FolderPath"];
+        string FileName = GridView1.Caption;
+        string Extension = Path.GetExtension(FileName);
+        string FilePath = Server.MapPath(FolderPath + FileName);
+
+        Import_To_Grid(FilePath, Extension, rbHDR.SelectedItem.Text);
         GridView1.PageIndex = e.NewPageIndex;
-        this.BindGrid();
-    }
-
-    private void ExcelConn(string FilePath)
-    {
-
-        constrEx = string.Format(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES;""", FilePath);
-        Econ = new OleDbConnection(constrEx);
-
-    }
-    private void connection()
-    {
-        con = new SqlConnection(constr);
-    }
-
-    private void InsertExcelRecords(string FilePath)
-    {
-        ExcelConn(FilePath);
-
-        Query = string.Format("SELECT [Name],[City],[Address],[Designation] FROM [Sheet1$]");
-        OleDbCommand Ecom = new OleDbCommand(Query, Econ);
-        Econ.Open();
-
-        DataSet ds = new DataSet();
-        OleDbDataAdapter oda = new OleDbDataAdapter(Query, Econ);
-        Econ.Close();
-        oda.Fill(ds);
-        DataTable Exceldt = ds.Tables[0];
-
-        GridView1.DataSource = Exceldt;
         GridView1.DataBind();
-        //connection();
-        ////creating object of SqlBulkCopy    
-        //SqlBulkCopy objbulk = new SqlBulkCopy(con);
-        ////assigning Destination table name    
-        //objbulk.DestinationTableName = "dbo.Employee";
-        ////Mapping Table column    
-        //objbulk.ColumnMappings.Add("Name", "Name");
-        //objbulk.ColumnMappings.Add("City", "City");
-        //objbulk.ColumnMappings.Add("Address", "Address");
-        //objbulk.ColumnMappings.Add("Designation", "Designation");
-        ////inserting Datatable Records to DataBase    
-        //con.Open();
-        //objbulk.WriteToServer(Exceldt);
-        //con.Close();
-
     }
+    
+    private void Import_To_Grid(string FilePath, string Extension, string isHDR)
+    {
+        string conStr = "";
+        switch (Extension)
+        {
+            case ".xls": //Excel 97-03
+                conStr = ConfigurationManager.ConnectionStrings["Excel03ConString"].ConnectionString;
+                break;
+            case ".xlsx": //Excel 07
+                conStr = ConfigurationManager.ConnectionStrings["Excel07ConString"].ConnectionString;
+                break;
+        }
+        conStr = String.Format(conStr, FilePath, isHDR);
+        OleDbConnection connExcel = new OleDbConnection(conStr);
+        OleDbCommand cmdExcel = new OleDbCommand();
+        OleDbDataAdapter oda = new OleDbDataAdapter();
+        DataTable dt = new DataTable();
+        cmdExcel.Connection = connExcel;
+
+        //Get the name of First Sheet
+        connExcel.Open();
+        DataTable dtExcelSchema;
+        dtExcelSchema = connExcel.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+        string SheetName = dtExcelSchema.Rows[0]["TABLE_NAME"].ToString();
+        connExcel.Close();
+
+        //Read Data from First Sheet
+        connExcel.Open();
+        cmdExcel.CommandText = "SELECT * From [" + SheetName + "]";
+        oda.SelectCommand = cmdExcel;
+        oda.Fill(dt);
+        connExcel.Close();
+
+        //Bind Data to GridView
+        GridView1.Caption = Path.GetFileName(FilePath);
+        GridView1.DataSource = dt;
+        GridView1.DataBind();
+    }
+
     protected void Button1_Click(object sender, EventArgs e)
     {
-        string CurrentFilePath = Path.GetFullPath(FileUpload1.PostedFile.FileName);
-        //InsertExcelRecords(CurrentFilePath);
-        btnImport(sender, e);
-    }
-
-    protected void btnImport(object sender, EventArgs e)
-    {
-        string connString = "";
-        string strFileType = Path.GetExtension(FileUpload1.FileName).ToLower();
-        string path = FileUpload1.PostedFile.FileName;
-        //Connection String to Excel Workbook
-        if (strFileType.Trim() == ".xls")
+        if (FileUpload1.HasFile)
         {
-            connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + path + ";Extended Properties=\"Excel 8.0;HDR=Yes;IMEX=2\"";
-        }
-        else if (strFileType.Trim() == ".xlsx")
-        {
-            connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + path + ";Extended Properties=\"Excel 12.0;HDR=Yes;IMEX=2\"";
-        }
-        string query = "SELECT [Name],[City],[Address],[Designation] FROM [Sheet1$]";
-        OleDbConnection conn = new OleDbConnection(connString);
-        if (conn.State == ConnectionState.Closed)
-            conn.Open();
-        OleDbCommand cmd = new OleDbCommand(query, conn);
-        OleDbDataAdapter da = new OleDbDataAdapter(cmd);
-        DataSet ds = new DataSet();
-        da.Fill(ds);
-        GridView1.DataSource = ds.Tables[0];
-        GridView1.DataBind();
-        da.Dispose();
-        conn.Close();
-        conn.Dispose();
-    }
+            string FileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
+            string Extension = Path.GetExtension(FileUpload1.PostedFile.FileName);
+            string FolderPath = ConfigurationManager.AppSettings["FolderPath"];
 
-    protected void Button2_Click(object sender, EventArgs e)
-    {
-        BindGrid();
+            string FilePath = Server.MapPath(FolderPath + FileName);
+            FileUpload1.SaveAs(FilePath);
+            Import_To_Grid(FilePath, Extension, rbHDR.SelectedItem.Text);
+        }
     }
 }
