@@ -45,7 +45,10 @@
                 <asp:BoundField ItemStyle-Width="150px" DataField="Country" HeaderText="Country" />
             </Columns>
         </asp:GridView>
+        <br />
     </div>
+        <asp:FileUpload ID="FileUpload1" runat="server" />
+&nbsp;<asp:Button ID="Button1" runat="server" Height="22px" Text="Upload" />
     </form>
 </body>
 </html>
