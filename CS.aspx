@@ -48,8 +48,8 @@
         <br />
     </div>
         <asp:FileUpload ID="FileUpload1" runat="server" />
-&nbsp;<asp:Button ID="Button1" runat="server" Height="22px" Text="Upload" OnClick="Button1_Click" />
-    &nbsp;<asp:Button ID="Button2" runat="server" Height="22px" OnClick="Button2_Click" Text="ShowDB" />
+&nbsp;<asp:Button ID="Button1" runat="server" Height="22px" Text="Show in GridView" OnClick="Button1_Click" />
+    &nbsp;<asp:Button ID="Button4" runat="server" Height="22px" OnClick="Button4_Click" Text="Upload to TB Employee" />
         <br />
         <br />
         <asp:Label ID="Label1" runat="server" Text="Has Header ?"></asp:Label>
@@ -57,6 +57,11 @@
             <asp:ListItem Text = "Yes" Value = "Yes" Selected = "True" ></asp:ListItem>
             <asp:ListItem Text = "No" Value = "No"></asp:ListItem>
         </asp:RadioButtonList>
+        <br />
+        <asp:Button ID="Button2" runat="server" Height="22px" OnClick="Button2_Click" Text="ShowTB Employee" />
+        &nbsp;<asp:Button ID="Button3" runat="server" Height="22px" OnClick="Button3_Click" Text="TruncateTB Employee" />
+        <br />
+        <br />
     </form>
 </body>
 </html>

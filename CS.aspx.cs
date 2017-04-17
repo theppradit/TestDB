@@ -11,9 +11,8 @@ using System.Configuration;
 using System.Data.OleDb;
 using System.IO;
 
-public partial class _Default : System.Web.UI.Page 
+public partial class _Default : System.Web.UI.Page
 {
-
     protected void Page_Load(object sender, EventArgs e)
     {
         //if (!this.IsPostBack)
@@ -59,7 +58,7 @@ public partial class _Default : System.Web.UI.Page
         GridView1.PageIndex = e.NewPageIndex;
         GridView1.DataBind();
     }
-    
+
     private void Import_To_Grid(string FilePath, string Extension, string isHDR)
     {
         string conStr = "";
@@ -111,5 +110,25 @@ public partial class _Default : System.Web.UI.Page
             FileUpload1.SaveAs(FilePath);
             Import_To_Grid(FilePath, Extension, rbHDR.SelectedItem.Text);
         }
+    }
+
+    protected void Button3_Click(object sender, EventArgs e)
+    {
+        string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
+        using (SqlConnection con = new SqlConnection(constr))
+        {
+            using (SqlCommand cmd = new SqlCommand("TRUNCATE TABLE dbo.Employee"))
+            {
+                con.Open();
+                cmd.Connection = con;
+                cmd.ExecuteNonQuery();
+                con.Close();
+            }
+        }
+    }
+
+    protected void Button4_Click(object sender, EventArgs e)
+    {
+
     }
 }
