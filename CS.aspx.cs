@@ -16,22 +16,22 @@ public partial class _Default : System.Web.UI.Page
 
     OleDbConnection Econ;
     SqlConnection con;
-    string constr, Query, sqlconn;
+    string constrEx, Query, sqlconn;
+    string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
 
     protected void Page_Load(object sender, EventArgs e)
     {
-        if (!this.IsPostBack)
-        {
-            this.BindGrid();
-        }
+        //if (!this.IsPostBack)
+        //{
+        //    this.BindGrid();
+        //}
     }
 
     private void BindGrid()
     {
-        string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
         using (SqlConnection con = new SqlConnection(constr))
         {
-            using (SqlCommand cmd = new SqlCommand("SELECT CustomerId, ContactName, City, Country FROM Customers"))
+            using (SqlCommand cmd = new SqlCommand("SELECT Name, City, Address, Designation FROM dbo.Employee"))
             {
                 using (SqlDataAdapter sda = new SqlDataAdapter())
                 {
@@ -57,22 +57,20 @@ public partial class _Default : System.Web.UI.Page
     private void ExcelConn(string FilePath)
     {
 
-        constr = string.Format(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES;""", FilePath);
-        Econ = new OleDbConnection(constr);
+        constrEx = string.Format(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES;""", FilePath);
+        Econ = new OleDbConnection(constrEx);
 
     }
     private void connection()
     {
-        sqlconn = ConfigurationManager.ConnectionStrings["SqlCom"].ConnectionString;
-        con = new SqlConnection(sqlconn);
-
+        con = new SqlConnection(constr);
     }
 
     private void InsertExcelRecords(string FilePath)
     {
         ExcelConn(FilePath);
 
-        Query = string.Format("Select [Name],[City],[Address],[Designation] FROM [{0}]", "Sheet1$");
+        Query = string.Format("SELECT [Name],[City],[Address],[Designation] FROM [Sheet1$]");
         OleDbCommand Ecom = new OleDbCommand(Query, Econ);
         Econ.Open();
 
@@ -81,25 +79,63 @@ public partial class _Default : System.Web.UI.Page
         Econ.Close();
         oda.Fill(ds);
         DataTable Exceldt = ds.Tables[0];
-        connection();
-        //creating object of SqlBulkCopy    
-        SqlBulkCopy objbulk = new SqlBulkCopy(con);
-        //assigning Destination table name    
-        objbulk.DestinationTableName = "Employee";
-        //Mapping Table column    
-        objbulk.ColumnMappings.Add("Name", "Name");
-        objbulk.ColumnMappings.Add("City", "City");
-        objbulk.ColumnMappings.Add("Address", "Address");
-        objbulk.ColumnMappings.Add("Designation", "Designation");
-        //inserting Datatable Records to DataBase    
-        con.Open();
-        objbulk.WriteToServer(Exceldt);
-        con.Close();
+
+        GridView1.DataSource = Exceldt;
+        GridView1.DataBind();
+        //connection();
+        ////creating object of SqlBulkCopy    
+        //SqlBulkCopy objbulk = new SqlBulkCopy(con);
+        ////assigning Destination table name    
+        //objbulk.DestinationTableName = "dbo.Employee";
+        ////Mapping Table column    
+        //objbulk.ColumnMappings.Add("Name", "Name");
+        //objbulk.ColumnMappings.Add("City", "City");
+        //objbulk.ColumnMappings.Add("Address", "Address");
+        //objbulk.ColumnMappings.Add("Designation", "Designation");
+        ////inserting Datatable Records to DataBase    
+        //con.Open();
+        //objbulk.WriteToServer(Exceldt);
+        //con.Close();
 
     }
     protected void Button1_Click(object sender, EventArgs e)
     {
         string CurrentFilePath = Path.GetFullPath(FileUpload1.PostedFile.FileName);
-        InsertExcelRecords(CurrentFilePath);
+        //InsertExcelRecords(CurrentFilePath);
+        btnImport(sender, e);
+    }
+
+    protected void btnImport(object sender, EventArgs e)
+    {
+        string connString = "";
+        string strFileType = Path.GetExtension(FileUpload1.FileName).ToLower();
+        string path = FileUpload1.PostedFile.FileName;
+        //Connection String to Excel Workbook
+        if (strFileType.Trim() == ".xls")
+        {
+            connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + path + ";Extended Properties=\"Excel 8.0;HDR=Yes;IMEX=2\"";
+        }
+        else if (strFileType.Trim() == ".xlsx")
+        {
+            connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + path + ";Extended Properties=\"Excel 12.0;HDR=Yes;IMEX=2\"";
+        }
+        string query = "SELECT [Name],[City],[Address],[Designation] FROM [Sheet1$]";
+        OleDbConnection conn = new OleDbConnection(connString);
+        if (conn.State == ConnectionState.Closed)
+            conn.Open();
+        OleDbCommand cmd = new OleDbCommand(query, conn);
+        OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+        DataSet ds = new DataSet();
+        da.Fill(ds);
+        GridView1.DataSource = ds.Tables[0];
+        GridView1.DataBind();
+        da.Dispose();
+        conn.Close();
+        conn.Dispose();
+    }
+
+    protected void Button2_Click(object sender, EventArgs e)
+    {
+        BindGrid();
     }
 }

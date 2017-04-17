@@ -39,16 +39,17 @@
         <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" AllowPaging="true"
             OnPageIndexChanging="OnPageIndexChanging" PageSize="10">
             <Columns>
-                <asp:BoundField ItemStyle-Width="150px" DataField="CustomerID" HeaderText="Customer ID" />
-                <asp:BoundField ItemStyle-Width="150px" DataField="ContactName" HeaderText="Contact Name" />
+                <asp:BoundField ItemStyle-Width="150px" DataField="Name" HeaderText="Name" />
                 <asp:BoundField ItemStyle-Width="150px" DataField="City" HeaderText="City" />
-                <asp:BoundField ItemStyle-Width="150px" DataField="Country" HeaderText="Country" />
+                <asp:BoundField ItemStyle-Width="150px" DataField="Address" HeaderText="Address" />
+                <asp:BoundField ItemStyle-Width="150px" DataField="Designation" HeaderText="Designation" />
             </Columns>
         </asp:GridView>
         <br />
     </div>
         <asp:FileUpload ID="FileUpload1" runat="server" />
 &nbsp;<asp:Button ID="Button1" runat="server" Height="22px" Text="Upload" />
+    &nbsp;<asp:Button ID="Button2" runat="server" Height="22px" OnClick="Button2_Click" Text="ShowDB" />
     </form>
 </body>
 </html>
